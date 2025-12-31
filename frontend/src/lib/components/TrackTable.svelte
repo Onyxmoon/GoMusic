@@ -179,8 +179,7 @@
     text-overflow: ellipsis;
   }
 
-  .col-album,
-  .col-date {
+  .col-album {
     color: #6b7280;
     white-space: nowrap;
     overflow: hidden;
