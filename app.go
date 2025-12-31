@@ -448,13 +448,13 @@ func (a *App) AudioFileMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Handle requests to /audio/* path
 		if len(r.URL.Path) >= 7 && r.URL.Path[:7] == "/audio/" {
-			a.ServeAudioFile(w, r)
+			a.serveAudioFile(w, r)
 			return
 		}
 
 		// Handle requests to /artwork/* path
 		if len(r.URL.Path) >= 9 && r.URL.Path[:9] == "/artwork/" {
-			a.ServeArtworkFile(w, r)
+			a.serveArtworkFile(w, r)
 			return
 		}
 
@@ -482,8 +482,8 @@ func (a *App) GetTrackFilePath(trackID string) (string, error) {
 	return track.FilePath, nil
 }
 
-// ServeAudioFile handles HTTP requests for streaming audio files by track ID
-func (a *App) ServeAudioFile(w http.ResponseWriter, r *http.Request) {
+// serveAudioFile handles HTTP requests for streaming audio files by track ID
+func (a *App) serveAudioFile(w http.ResponseWriter, r *http.Request) {
 	// Extract track ID from URL query parameter
 	trackID := r.URL.Query().Get("id")
 	if trackID == "" {
@@ -545,8 +545,8 @@ func (a *App) ServeAudioFile(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// ServeArtworkFile handles HTTP requests for serving album artwork by track ID
-func (a *App) ServeArtworkFile(w http.ResponseWriter, r *http.Request) {
+// serveArtworkFile handles HTTP requests for serving album artwork by track ID
+func (a *App) serveArtworkFile(w http.ResponseWriter, r *http.Request) {
 	// Extract track ID from URL query parameter
 	trackID := r.URL.Query().Get("id")
 	if trackID == "" {
