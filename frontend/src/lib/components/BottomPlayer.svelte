@@ -137,15 +137,15 @@
 
     <div class="player-center">
       <div class="controls">
-        <button class="control-btn" on:click={player.previous}><SkipBack size={18} /></button>
-        <button class="control-btn play-btn" on:click={togglePlayPause}>
+        <button class="control-btn" onclick={player.previous}><SkipBack size={18} /></button>
+        <button class="control-btn play-btn" onclick={togglePlayPause}>
           {#if player.isPlaying}
             <Pause size={18} />
           {:else}
             <Play size={18} />
           {/if}
         </button>
-        <button class="control-btn" on:click={player.next}><SkipForward size={18} /></button>
+        <button class="control-btn" onclick={player.next}><SkipForward size={18} /></button>
       </div>
 
       <div class="progress-section">

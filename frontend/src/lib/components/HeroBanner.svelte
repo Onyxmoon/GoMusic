@@ -129,7 +129,4 @@
     transform: scale(0.98);
   }
 
-  .play-icon {
-    margin-left: 3px;
-  }
 </style>

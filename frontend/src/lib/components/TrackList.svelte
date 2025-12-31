@@ -49,7 +49,13 @@
       </div>
 
       {#each tracks as track, index}
-        <div class="track-row" on:click={() => playTrack(track)}>
+        <div
+          class="track-row"
+          on:click={() => playTrack(track)}
+          role="button"
+          tabindex="0"
+          on:keydown={(e) => e.key === 'Enter' && playTrack(track)}
+        >
           <div class="track-col track-col-number">{index + 1}</div>
           <div class="track-col track-col-title">
             <div class="track-title">{track.title}</div>

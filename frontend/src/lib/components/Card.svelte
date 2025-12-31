@@ -2,7 +2,14 @@
   export let clickable: boolean = false;
 </script>
 
-<div class="card" class:clickable on:click>
+<div
+  class="card"
+  class:clickable
+  on:click
+  role={clickable ? 'button' : undefined}
+  tabindex={clickable ? 0 : undefined}
+  on:keydown={(e) => clickable && e.key === 'Enter' && e.currentTarget.click()}
+>
   <slot />
 </div>
 
