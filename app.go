@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"time"
@@ -439,6 +441,28 @@ func (a *App) SelectDirectory() (string, error) {
 	return selectedPath, nil
 }
 
+// === HTTP MIDDLEWARE ===
+
+// AudioFileMiddleware intercepts audio streaming and artwork requests
+func (a *App) AudioFileMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Handle requests to /audio/* path
+		if len(r.URL.Path) >= 7 && r.URL.Path[:7] == "/audio/" {
+			a.ServeAudioFile(w, r)
+			return
+		}
+
+		// Handle requests to /artwork/* path
+		if len(r.URL.Path) >= 9 && r.URL.Path[:9] == "/artwork/" {
+			a.ServeArtworkFile(w, r)
+			return
+		}
+
+		// Not an audio or artwork request, pass to next handler
+		next.ServeHTTP(w, r)
+	})
+}
+
 // === AUDIO PLAYBACK METHODS ===
 
 // GetTrackFilePath returns the file path for a track
@@ -456,5 +480,156 @@ func (a *App) GetTrackFilePath(trackID string) (string, error) {
 	//   - api → http:// stream URL
 	//   - remote → https:// stream URL
 	return track.FilePath, nil
+}
+
+// ServeAudioFile handles HTTP requests for streaming audio files by track ID
+func (a *App) ServeAudioFile(w http.ResponseWriter, r *http.Request) {
+	// Extract track ID from URL query parameter
+	trackID := r.URL.Query().Get("id")
+	if trackID == "" {
+		http.Error(w, "Missing id parameter", http.StatusBadRequest)
+		return
+	}
+
+	// Look up track in library service cache
+	track, err := a.libraryService.GetTrackByID(a.ctx, trackID)
+	if err != nil {
+		http.Error(w, "Track not found", http.StatusNotFound)
+		return
+	}
+
+	// Get file path from track metadata
+	filePath := track.FilePath
+	if filePath == "" {
+		http.Error(w, "Track has no file path", http.StatusInternalServerError)
+		return
+	}
+
+	// Verify file exists and is readable
+	fileInfo, err := os.Stat(filePath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			http.Error(w, "File not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "Cannot access file", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	if fileInfo.IsDir() {
+		http.Error(w, "Path is a directory, not a file", http.StatusBadRequest)
+		return
+	}
+
+	// Open the file
+	file, err := os.Open(filePath)
+	if err != nil {
+		http.Error(w, "Cannot open file", http.StatusNotFound)
+		return
+	}
+	defer func() {
+		if err := file.Close(); err != nil {
+			fmt.Printf("Error closing file: %v\n", err)
+		}
+	}()
+
+	// Set response headers
+	w.Header().Set("Content-Type", getAudioContentType(filePath))
+	w.Header().Set("Content-Length", fmt.Sprintf("%d", fileInfo.Size()))
+	w.Header().Set("Accept-Ranges", "bytes")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	// Stream the file
+	if _, err := io.Copy(w, file); err != nil {
+		fmt.Printf("Error streaming audio file: %v\n", err)
+	}
+}
+
+// ServeArtworkFile handles HTTP requests for serving album artwork by track ID
+func (a *App) ServeArtworkFile(w http.ResponseWriter, r *http.Request) {
+	// Extract track ID from URL query parameter
+	trackID := r.URL.Query().Get("id")
+	if trackID == "" {
+		http.Error(w, "Missing id parameter", http.StatusBadRequest)
+		return
+	}
+
+	// Look up track in library service cache
+	track, err := a.libraryService.GetTrackByID(a.ctx, trackID)
+	if err != nil {
+		http.Error(w, "Track not found", http.StatusNotFound)
+		return
+	}
+
+	// Get artwork path from track metadata
+	artworkPath := track.ArtworkPath
+	if artworkPath == "" {
+		http.Error(w, "Track has no artwork", http.StatusNotFound)
+		return
+	}
+
+	// Open the artwork file
+	file, err := os.Open(artworkPath)
+	if err != nil {
+		http.Error(w, "Artwork not found", http.StatusNotFound)
+		return
+	}
+	defer file.Close()
+
+	// Get file info for Content-Length
+	fileInfo, err := file.Stat()
+	if err != nil {
+		http.Error(w, "Cannot stat file", http.StatusInternalServerError)
+		return
+	}
+
+	// Set response headers
+	w.Header().Set("Content-Type", getImageContentType(artworkPath))
+	w.Header().Set("Content-Length", fmt.Sprintf("%d", fileInfo.Size()))
+	w.Header().Set("Cache-Control", "public, max-age=31536000") // Cache for 1 year
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	// Stream the image
+	if _, err := io.Copy(w, file); err != nil {
+		fmt.Printf("Error streaming artwork: %v\n", err)
+	}
+}
+
+// getAudioContentType determines the MIME type for audio files
+func getAudioContentType(filePath string) string {
+	ext := filepath.Ext(filePath)
+	switch ext {
+	case ".mp3":
+		return "audio/mpeg"
+	case ".m4a":
+		return "audio/mp4"
+	case ".flac":
+		return "audio/flac"
+	case ".ogg":
+		return "audio/ogg"
+	case ".wav":
+		return "audio/wav"
+	default:
+		return "application/octet-stream"
+	}
+}
+
+// getImageContentType determines the MIME type for image files
+func getImageContentType(filePath string) string {
+	ext := filepath.Ext(filePath)
+	switch ext {
+	case ".jpg", ".jpeg":
+		return "image/jpeg"
+	case ".png":
+		return "image/png"
+	case ".gif":
+		return "image/gif"
+	case ".bmp":
+		return "image/bmp"
+	case ".webp":
+		return "image/webp"
+	default:
+		return "image/jpeg"
+	}
 }
 

@@ -87,8 +87,8 @@
 
   // Extract colors from album artwork and apply to player background
   $effect(() => {
-    if (player.currentTrack?.artworkPath) {
-      const artworkUrl = `/artwork/stream?file=${encodeURIComponent(player.currentTrack.artworkPath)}`;
+    if (player.currentTrack?.id) {
+      const artworkUrl = `/artwork/stream?id=${encodeURIComponent(player.currentTrack.id)}`;
       extractColorsFromImage(artworkUrl)
         .then(colors => {
           const harmonized = colors.map(c => {
@@ -134,8 +134,8 @@
   {#if player.currentTrack}
     <div class="player-left">
       <div class="track-cover">
-        {#if player.currentTrack.artworkPath}
-          <img src={`/artwork/stream?file=${encodeURIComponent(player.currentTrack.artworkPath)}`} alt={player.currentTrack.title} />
+        {#if player.currentTrack.id}
+          <img src={`/artwork/stream?id=${encodeURIComponent(player.currentTrack.id)}`} alt={player.currentTrack.title} />
         {:else}
           <div class="cover-placeholder"></div>
         {/if}
