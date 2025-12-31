@@ -458,7 +458,3 @@ func (a *App) GetTrackFilePath(trackID string) (string, error) {
 	return track.FilePath, nil
 }
 
-// Greet returns a greeting for the given name (keeping for compatibility)
-func (a *App) Greet(name string) string {
-	return fmt.Sprintf("Hello %s, It's show time!", name)
-}

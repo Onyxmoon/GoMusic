@@ -174,21 +174,20 @@ func getFormat(m tag.Metadata) string {
 	return strings.ToLower(string(m.Format()))
 }
 
+// TODO: Implement bitrate extraction
 func getBitRate(m tag.Metadata) int {
-	// github.com/dhowden/tag doesn't provide bitrate directly
-	// This would require additional libraries or file format specific parsing
 	return 0
 }
 
+// TODO: Implement sample rate extraction
 func getSampleRate(m tag.Metadata) int {
-	// github.com/dhowden/tag doesn't provide sample rate directly
-	// This would require additional libraries or file format specific parsing
 	return 0
 }
 
+// TODO: Implement duration extraction
+// github.com/dhowden/tag provides duration through FileType interface
+// but it's not always available - needs proper implementation
 func getDuration(m tag.Metadata) int64 {
-	// github.com/dhowden/tag provides duration through FileType interface
-	// but it's not always available - returns 0 if not found
 	return 0
 }
 
