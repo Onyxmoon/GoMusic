@@ -78,14 +78,6 @@ export function SelectDirectory() {
   return window['go']['main']['App']['SelectDirectory']();
 }
 
-export function ServeArtworkFile(arg1, arg2) {
-  return window['go']['main']['App']['ServeArtworkFile'](arg1, arg2);
-}
-
-export function ServeAudioFile(arg1, arg2) {
-  return window['go']['main']['App']['ServeAudioFile'](arg1, arg2);
-}
-
 export function UpdateFilesystemSource(arg1, arg2, arg3, arg4, arg5) {
   return window['go']['main']['App']['UpdateFilesystemSource'](arg1, arg2, arg3, arg4, arg5);
 }

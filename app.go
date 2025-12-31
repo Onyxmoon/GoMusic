@@ -184,17 +184,15 @@ func (a *App) GetTracksByArtist(artistID string) ([]*dto.TrackDTO, error) {
 	return a.trackMapper.ToDTOList(tracks), nil
 }
 
-// ScanLibrary triggers a library scan for a specific source
-// Runs asynchronously and emits events for progress updates
-func (a *App) ScanLibrary(sourceID string) error {
-	// Run scan in background to avoid blocking UI
+// runScanWithEvents is a helper that runs a scan function asynchronously with event emission
+func (a *App) runScanWithEvents(sourceID string, scanFunc func(context.Context) error) error {
 	go func() {
 		ctx, cancel := context.WithCancel(a.ctx)
 		defer cancel()
 
 		runtime.EventsEmit(a.ctx, "scan:started", sourceID)
 
-		err := a.libraryService.ScanSource(ctx, sourceID)
+		err := scanFunc(ctx)
 		if err != nil {
 			runtime.EventsEmit(a.ctx, "scan:error", map[string]interface{}{
 				"sourceId": sourceID,
@@ -209,27 +207,19 @@ func (a *App) ScanLibrary(sourceID string) error {
 	return nil
 }
 
+// ScanLibrary triggers a library scan for a specific source
+// Runs asynchronously and emits events for progress updates
+func (a *App) ScanLibrary(sourceID string) error {
+	return a.runScanWithEvents(sourceID, func(ctx context.Context) error {
+		return a.libraryService.ScanSource(ctx, sourceID)
+	})
+}
+
 // ScanAllLibraries triggers a scan on all registered sources
 func (a *App) ScanAllLibraries() error {
-	go func() {
-		ctx, cancel := context.WithCancel(a.ctx)
-		defer cancel()
-
-		runtime.EventsEmit(a.ctx, "scan:started", "all")
-
-		err := a.libraryService.ScanAllSources(ctx)
-		if err != nil {
-			runtime.EventsEmit(a.ctx, "scan:error", map[string]interface{}{
-				"sourceId": "all",
-				"error":    err.Error(),
-			})
-			return
-		}
-
-		runtime.EventsEmit(a.ctx, "scan:complete", "all")
-	}()
-
-	return nil
+	return a.runScanWithEvents("all", func(ctx context.Context) error {
+		return a.libraryService.ScanAllSources(ctx)
+	})
 }
 
 // GetScanProgress retrieves current scan progress for a source

@@ -42,8 +42,4 @@ export function SearchTracks(arg1:string):Promise<Array<dto.TrackDTO>>;
 
 export function SelectDirectory():Promise<string>;
 
-export function ServeArtworkFile(arg1:http.ResponseWriter,arg2:http.Request):Promise<void>;
-
-export function ServeAudioFile(arg1:http.ResponseWriter,arg2:http.Request):Promise<void>;
-
 export function UpdateFilesystemSource(arg1:string,arg2:string,arg3:Array<string>,arg4:boolean,arg5:Array<string>):Promise<void>;
