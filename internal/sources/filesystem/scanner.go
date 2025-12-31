@@ -38,7 +38,7 @@ func (s *DirectoryScanner) ScanDirectory(ctx context.Context, callback func(file
 	var audioFiles []string
 
 	err := filepath.Walk(s.rootPath, func(path string, info os.FileInfo, err error) error {
-		// Check for context cancellation, maybe application was closed or cancelled. Layer 8 bullshit.
+		// Check for context cancellation (user cancelled scan or application is shutting down)
 		select {
 		case <-ctx.Done():
 

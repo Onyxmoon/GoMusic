@@ -3,6 +3,9 @@ package controller
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"GoMusic/internal/application/dto"
@@ -57,6 +60,33 @@ func (c *SourceController) GetSupportedFormats() []string {
 
 // AddFilesystemSource adds a new filesystem music source
 func (c *SourceController) AddFilesystemSource(ctx context.Context, name string, rootPaths []string, includeSubfolders bool, formats []string) error {
+	// Validate input
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return fmt.Errorf("source name cannot be empty")
+	}
+
+	if len(rootPaths) == 0 {
+		return fmt.Errorf("at least one root path is required")
+	}
+
+	// Normalize and validate paths
+	for i, path := range rootPaths {
+		cleaned := filepath.Clean(path)
+		if _, err := os.Stat(cleaned); err != nil {
+			return fmt.Errorf("root path does not exist: %s", path)
+		}
+		rootPaths[i] = cleaned
+	}
+
+	// Validate formats
+	supportedFormats := map[string]bool{".mp3": true, ".flac": true, ".m4a": true, ".ogg": true, ".oga": true}
+	for _, format := range formats {
+		if !supportedFormats[format] {
+			return fmt.Errorf("unsupported format: %s", format)
+		}
+	}
+
 	// Generate unique source ID based on timestamp
 	sourceID := fmt.Sprintf("filesystem-%d", time.Now().Unix())
 
