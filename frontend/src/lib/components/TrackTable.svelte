@@ -42,8 +42,8 @@
 
         <div class="col col-title">
           <div class="track-cover">
-            {#if track.artworkPath}
-              <img src={`/artwork/stream?file=${encodeURIComponent(track.artworkPath)}`} alt={track.title} />
+            {#if track.hasArtwork}
+              <img src={`/artwork/stream?id=${encodeURIComponent(track.id)}`} alt={track.title} />
             {:else}
               <div class="cover-placeholder"></div>
             {/if}

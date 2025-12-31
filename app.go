@@ -562,14 +562,23 @@ func (a *App) ServeArtworkFile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get artwork path from track metadata
-	artworkPath := track.ArtworkPath
-	if artworkPath == "" {
+	artworkFilename := track.ArtworkPath
+	if artworkFilename == "" {
 		http.Error(w, "Track has no artwork", http.StatusNotFound)
 		return
 	}
 
+	// Construct full path to artwork file
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		http.Error(w, "Failed to get home directory", http.StatusInternalServerError)
+		return
+	}
+	artworkDir := filepath.Join(homeDir, ".gomusic", "artwork")
+	fullPath := filepath.Join(artworkDir, artworkFilename)
+
 	// Open the artwork file
-	file, err := os.Open(artworkPath)
+	file, err := os.Open(fullPath)
 	if err != nil {
 		http.Error(w, "Artwork not found", http.StatusNotFound)
 		return
@@ -584,7 +593,7 @@ func (a *App) ServeArtworkFile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Set response headers
-	w.Header().Set("Content-Type", getImageContentType(artworkPath))
+	w.Header().Set("Content-Type", getImageContentType(fullPath))
 	w.Header().Set("Content-Length", fmt.Sprintf("%d", fileInfo.Size()))
 	w.Header().Set("Cache-Control", "public, max-age=31536000") // Cache for 1 year
 	w.Header().Set("Access-Control-Allow-Origin", "*")

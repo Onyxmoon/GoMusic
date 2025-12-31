@@ -87,7 +87,7 @@
 
   // Extract colors from album artwork and apply to player background
   $effect(() => {
-    if (player.currentTrack?.id) {
+    if (player.currentTrack?.hasArtwork) {
       const artworkUrl = `/artwork/stream?id=${encodeURIComponent(player.currentTrack.id)}`;
       extractColorsFromImage(artworkUrl)
         .then(colors => {
@@ -134,7 +134,7 @@
   {#if player.currentTrack}
     <div class="player-left">
       <div class="track-cover">
-        {#if player.currentTrack.id}
+        {#if player.currentTrack.hasArtwork}
           <img src={`/artwork/stream?id=${encodeURIComponent(player.currentTrack.id)}`} alt={player.currentTrack.title} />
         {:else}
           <div class="cover-placeholder"></div>

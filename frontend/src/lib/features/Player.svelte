@@ -29,8 +29,8 @@
   {#if player.currentTrack}
     <div class="player-track-info">
       <div class="track-artwork">
-        {#if player.currentTrack.artworkPath}
-          <img src={`/artwork/stream?file=${encodeURIComponent(player.currentTrack.artworkPath)}`} alt={player.currentTrack.title} />
+        {#if player.currentTrack.hasArtwork}
+          <img src={`/artwork/stream?id=${encodeURIComponent(player.currentTrack.id)}`} alt={player.currentTrack.title} />
         {:else}
           <div class="artwork-placeholder"></div>
         {/if}
