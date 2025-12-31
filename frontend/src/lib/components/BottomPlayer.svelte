@@ -2,6 +2,7 @@
   import { player } from '../stores/player.svelte';
   import { SkipBack, Play, Pause, SkipForward, Heart, Shuffle, Volume2, Maximize2 } from 'lucide-svelte';
   import { extractColorsFromImage } from '../utils/colorExtractor';
+  import { formatTime } from '../utils/timeFormat';
   import LiquidGlassProgress from './LiquidGlassProgress.svelte';
 
   let playerElement: HTMLDivElement;
@@ -16,12 +17,6 @@
   let color3 = $state('213, 232, 255');
 
   let animationFrameId: number | null = null;
-
-  function formatTime(seconds: number): string {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  }
 
   function handleProgressClick(e: MouseEvent) {
     const target = e.currentTarget as HTMLElement;

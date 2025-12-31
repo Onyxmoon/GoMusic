@@ -1,12 +1,7 @@
 <script lang="ts">
   import { player } from '../stores/player.svelte';
   import { SkipBack, Play, Pause, SkipForward, Volume2 } from 'lucide-svelte';
-
-  function formatTime(seconds: number): string {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  }
+  import { formatTime } from '../utils/timeFormat';
 
   function handleProgressClick(e: MouseEvent) {
     const target = e.currentTarget as HTMLElement;
