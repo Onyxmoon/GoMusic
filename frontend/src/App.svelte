@@ -3,7 +3,6 @@
   import Sidebar from './lib/components/Sidebar.svelte';
   import BottomPlayer from './lib/components/BottomPlayer.svelte';
   import AudioPlayer from './lib/components/AudioPlayer.svelte';
-  import DynamicBackground from './lib/components/DynamicBackground.svelte';
   import Library from './lib/features/LibraryNew.svelte';
   import Sources from './lib/features/Sources.svelte';
   import FileBrowser from './lib/features/FileBrowser.svelte';
@@ -82,9 +81,6 @@
 
   <!-- Audio Player (always running in background) -->
   <AudioPlayer />
-
-  <!-- Dynamic background gradient based on album artwork -->
-  <!-- <DynamicBackground /> -->
 </div>
 
 <style>

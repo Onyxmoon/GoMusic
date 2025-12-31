@@ -54,10 +54,6 @@ export function GetTracksByArtist(arg1) {
   return window['go']['main']['App']['GetTracksByArtist'](arg1);
 }
 
-export function Greet(arg1) {
-  return window['go']['main']['App']['Greet'](arg1);
-}
-
 export function RemoveSource(arg1) {
   return window['go']['main']['App']['RemoveSource'](arg1);
 }

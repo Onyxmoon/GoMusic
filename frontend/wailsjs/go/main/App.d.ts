@@ -29,8 +29,6 @@ export function GetTracksByAlbum(arg1:string):Promise<Array<dto.TrackDTO>>;
 
 export function GetTracksByArtist(arg1:string):Promise<Array<dto.TrackDTO>>;
 
-export function Greet(arg1:string):Promise<string>;
-
 export function RemoveSource(arg1:string):Promise<void>;
 
 export function ScanAllLibraries():Promise<void>;
