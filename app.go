@@ -187,12 +187,13 @@ func (a *App) GetTracksByArtist(artistID string) ([]*dto.TrackDTO, error) {
 func (a *App) ScanLibrary(sourceID string) error {
 	// Run scan in background to avoid blocking UI
 	go func() {
-		// Emit scan started event
+		ctx, cancel := context.WithCancel(a.ctx)
+		defer cancel()
+
 		runtime.EventsEmit(a.ctx, "scan:started", sourceID)
 
-		err := a.libraryService.ScanSource(context.Background(), sourceID)
+		err := a.libraryService.ScanSource(ctx, sourceID)
 		if err != nil {
-			// Emit error event to frontend
 			runtime.EventsEmit(a.ctx, "scan:error", map[string]interface{}{
 				"sourceId": sourceID,
 				"error":    err.Error(),
@@ -200,7 +201,6 @@ func (a *App) ScanLibrary(sourceID string) error {
 			return
 		}
 
-		// Emit completion event
 		runtime.EventsEmit(a.ctx, "scan:complete", sourceID)
 	}()
 
@@ -210,9 +210,12 @@ func (a *App) ScanLibrary(sourceID string) error {
 // ScanAllLibraries triggers a scan on all registered sources
 func (a *App) ScanAllLibraries() error {
 	go func() {
+		ctx, cancel := context.WithCancel(a.ctx)
+		defer cancel()
+
 		runtime.EventsEmit(a.ctx, "scan:started", "all")
 
-		err := a.libraryService.ScanAllSources(context.Background())
+		err := a.libraryService.ScanAllSources(ctx)
 		if err != nil {
 			runtime.EventsEmit(a.ctx, "scan:error", map[string]interface{}{
 				"sourceId": "all",

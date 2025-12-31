@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
@@ -93,10 +94,42 @@ func serveAudioFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Printf("🎵 Streaming audio file: %s\n", filePath)
+	// Security: Validate and clean the file path to prevent directory traversal attacks
+	cleanPath := filepath.Clean(filePath)
+
+	// Ensure the path is absolute (prevents relative path attacks)
+	if !filepath.IsAbs(cleanPath) {
+		http.Error(w, "Invalid file path: must be absolute path", http.StatusBadRequest)
+		return
+	}
+
+	// Additional security check: reject paths containing ".." segments
+	if strings.Contains(cleanPath, "..") {
+		http.Error(w, "Invalid file path: path traversal not allowed", http.StatusForbidden)
+		return
+	}
+
+	// Verify the file exists and is a regular file (not a directory or symlink)
+	fileInfo, err := os.Stat(cleanPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			http.Error(w, "File not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "Cannot access file", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	// Ensure it's a regular file, not a directory
+	if fileInfo.IsDir() {
+		http.Error(w, "Path is a directory, not a file", http.StatusBadRequest)
+		return
+	}
+
+	fmt.Printf("🎵 Streaming audio file: %s\n", cleanPath)
 
 	// Open the file
-	file, err := os.Open(filePath)
+	file, err := os.Open(cleanPath)
 	if err != nil {
 		fmt.Printf("Error opening file: %v\n", err)
 		http.Error(w, "File not found", http.StatusNotFound)
@@ -108,14 +141,7 @@ func serveAudioFile(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	// Get file info for Content-Length
-	fileInfo, err := file.Stat()
-	if err != nil {
-		http.Error(w, "Cannot stat file", http.StatusInternalServerError)
-		return
-	}
-
-	// Set appropriate headers
+	// Set appropriate headers (reuse fileInfo from earlier Stat call)
 	w.Header().Set("Content-Type", getContentType(filePath))
 	w.Header().Set("Content-Length", fmt.Sprintf("%d", fileInfo.Size()))
 	w.Header().Set("Accept-Ranges", "bytes")
@@ -149,8 +175,13 @@ func serveArtworkFile(w http.ResponseWriter, r *http.Request) {
 
 	// Security: Ensure the resolved path is still within the artwork directory
 	// This prevents directory traversal attacks (e.g., file=../../etc/passwd)
-	if !filepath.HasPrefix(filePath, artworkDir) {
-		http.Error(w, "Invalid file path", http.StatusBadRequest)
+	cleanPath := filepath.Clean(filePath)
+	cleanArtworkDir := filepath.Clean(artworkDir)
+
+	// Use filepath.Rel to check if the path is within artworkDir
+	relPath, err := filepath.Rel(cleanArtworkDir, cleanPath)
+	if err != nil || strings.HasPrefix(relPath, "..") || filepath.IsAbs(relPath) {
+		http.Error(w, "Invalid file path: access denied", http.StatusForbidden)
 		return
 	}
 
