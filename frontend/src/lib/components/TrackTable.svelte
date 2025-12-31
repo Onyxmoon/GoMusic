@@ -1,19 +1,14 @@
 <script lang="ts">
-  import type { TrackDTO } from '../types/track';
+  import type { dto } from '../../../wailsjs/go/models';
   import { Play, MoreVertical } from 'lucide-svelte';
 
-  export let tracks: TrackDTO[] = [];
-  export let onTrackClick: (track: TrackDTO) => void = () => {};
+  export let tracks: dto.TrackDTO[] = [];
+  export let onTrackClick: (track: dto.TrackDTO) => void = () => {};
 
   function formatDuration(seconds: number): string {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
-  }
-
-  function formatDate(date: string): string {
-    // Simple date formatting
-    return date || '22.6.2024';
   }
 </script>
 
@@ -22,7 +17,6 @@
     <div class="col col-number">#</div>
     <div class="col col-title">Title</div>
     <div class="col col-album">Album</div>
-    <div class="col col-date">Added date</div>
     <div class="col col-time">Time</div>
   </div>
 
@@ -55,7 +49,6 @@
         </div>
 
         <div class="col col-album">{track.album}</div>
-        <div class="col col-date">{formatDate(track.addedAt?.toString())}</div>
         <div class="col col-time">
           {formatDuration(track.duration)}
           <button class="more-btn" on:click|stopPropagation><MoreVertical size={16} /></button>
@@ -72,7 +65,7 @@
 
   .table-header {
     display: grid;
-    grid-template-columns: 50px minmax(200px, 2fr) minmax(120px, 1fr) minmax(100px, 0.8fr) 100px;
+    grid-template-columns: 50px minmax(200px, 2fr) minmax(120px, 1fr) 100px;
     gap: 16px;
     padding: 12px 16px;
     border-bottom: 1px solid rgba(0, 0, 0, 0.06);
@@ -88,7 +81,7 @@
 
   .track-row {
     display: grid;
-    grid-template-columns: 50px minmax(200px, 2fr) minmax(120px, 1fr) minmax(100px, 0.8fr) 100px;
+    grid-template-columns: 50px minmax(200px, 2fr) minmax(120px, 1fr) 100px;
     gap: 16px;
     padding: 10px 16px;
     background: transparent;

@@ -3,6 +3,8 @@
   import { GetAllTracks, ScanAllLibraries } from '../../../wailsjs/go/main/App.js';
   import { tracks, isLoading, error } from '../stores/library';
   import { EventsOn } from '../../../wailsjs/runtime/runtime.js';
+  import type { dto } from '../../../wailsjs/go/models';
+  import type { ScanErrorEvent } from '../types/events';
   import TrackTable from '../components/TrackTable.svelte';
   import { player } from '../stores/player.svelte';
   import { RefreshCw, AlertTriangle, X, Music, Disc, Mic, List } from 'lucide-svelte';
@@ -53,7 +55,7 @@
       await loadTracks();
     });
 
-    EventsOn('scan:error', (data: any) => {
+    EventsOn('scan:error', (data: ScanErrorEvent) => {
       console.error('Scan error:', data);
       error.set(data.error || 'Scan failed');
       isScanning = false;
@@ -67,7 +69,7 @@
     }
   }
 
-  function handleTrackClick(track: any) {
+  function handleTrackClick(track: dto.TrackDTO) {
     player.setPlaylist($tracks, $tracks.indexOf(track));
     player.play(track);
   }

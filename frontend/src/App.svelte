@@ -72,7 +72,13 @@
       />
 
       <main class="main-content">
-        <svelte:component this={currentView} section={activeSection} />
+        {#if activeTab === 'library'}
+          <Library section={activeSection} />
+        {:else if activeTab === 'sources'}
+          <Sources />
+        {:else if activeTab === 'files'}
+          <FileBrowser />
+        {/if}
       </main>
     </div>
   </div>

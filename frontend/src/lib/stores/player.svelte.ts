@@ -1,15 +1,15 @@
-import type { TrackDTO } from '../types/track';
+import type { dto } from '../../../wailsjs/go/models';
 
 /**
  * Manages audio playback state and playlist queue
  */
 class PlayerStore {
-  currentTrack = $state<TrackDTO | null>(null);
+  currentTrack = $state<dto.TrackDTO | null>(null);
   isPlaying = $state<boolean>(false);
   currentTime = $state<number>(0);
   volume = $state<number>(0.8);
   isMuted = $state<boolean>(false);
-  playlist = $state<TrackDTO[]>([]);
+  playlist = $state<dto.TrackDTO[]>([]);
   currentIndex = $state<number>(-1);
 
   // Additional features
@@ -29,7 +29,7 @@ class PlayerStore {
    * Play a specific track
    * This sets the track as current and starts playback
    */
-  play(track: TrackDTO) {
+  play(track: dto.TrackDTO) {
     if (!track) return;
 
     this.currentTrack = track;
@@ -152,7 +152,7 @@ class PlayerStore {
   /**
    * Set the current playlist and optionally start playing
    */
-  setPlaylist(tracks: TrackDTO[], startIndex: number = 0) {
+  setPlaylist(tracks: dto.TrackDTO[], startIndex: number = 0) {
     if (!tracks || tracks.length === 0) {
       this.playlist = [];
       this.currentIndex = -1;

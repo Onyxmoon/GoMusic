@@ -1,9 +1,9 @@
 <script lang="ts">
-  import type { TrackDTO } from '../types/track';
+  import type { dto } from '../../../wailsjs/go/models';
   import { player } from '../stores/player.svelte';
   import { Play } from 'lucide-svelte';
 
-  export let tracks: TrackDTO[];
+  export let tracks: dto.TrackDTO[];
   export let showAlbum: boolean = true;
   export let showArtist: boolean = true;
 
@@ -13,7 +13,7 @@
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   }
 
-  function playTrack(track: TrackDTO) {
+  function playTrack(track: dto.TrackDTO) {
     player.play(track);
   }
 
