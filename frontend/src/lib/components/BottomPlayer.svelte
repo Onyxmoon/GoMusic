@@ -3,14 +3,15 @@
   import { SkipBack, Play, Pause, SkipForward, Heart, Shuffle, Volume2, Maximize2 } from 'lucide-svelte';
   import { extractColorsFromImage } from '../utils/colorExtractor';
   import { formatTime } from '../utils/timeFormat';
+  import { lerpColor, easeInOutCubic, type RGB } from '../utils/colorAnimation';
   import LiquidGlassProgress from './LiquidGlassProgress.svelte';
 
   let playerElement: HTMLDivElement;
 
   // Current colors for smooth interpolation
-  let currentColor1 = { r: 255, g: 214, b: 214 };
-  let currentColor2 = { r: 232, g: 213, b: 255 };
-  let currentColor3 = { r: 213, g: 232, b: 255 };
+  let currentColor1: RGB = { r: 255, g: 214, b: 214 };
+  let currentColor2: RGB = { r: 232, g: 213, b: 255 };
+  let currentColor3: RGB = { r: 213, g: 232, b: 255 };
 
   let color1 = $state('255, 214, 214');
   let color2 = $state('232, 213, 255');
@@ -34,20 +35,7 @@
     }
   }
 
-  // Helper functions for smooth animation
-  function lerpColor(from: { r: number; g: number; b: number }, to: { r: number; g: number; b: number }, t: number) {
-    return {
-      r: Math.round(from.r + (to.r - from.r) * t),
-      g: Math.round(from.g + (to.g - from.g) * t),
-      b: Math.round(from.b + (to.b - from.b) * t)
-    };
-  }
-
-  function easeInOutCubic(t: number): number {
-    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-  }
-
-  function animateColors(target1: { r: number; g: number; b: number }, target2: { r: number; g: number; b: number }, target3: { r: number; g: number; b: number }) {
+  function animateColors(target1: RGB, target2: RGB, target3: RGB) {
     if (animationFrameId !== null) {
       cancelAnimationFrame(animationFrameId);
     }
