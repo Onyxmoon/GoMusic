@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import { GetAllTracks, ScanAllLibraries } from '../../../wailsjs/go/main/App.js';
   import { tracks, isLoading, error } from '../stores/library';
-  import { EventsOn } from '../../../wailsjs/runtime/runtime.js';
+  import { EventsOn } from '../../../wailsjs/runtime';
   import type { dto } from '../../../wailsjs/go/models';
   import type { ScanErrorEvent } from '../types/events';
   import TrackTable from '../components/TrackTable.svelte';
@@ -258,6 +258,7 @@
     overflow-y: auto;
     overflow-x: hidden;
     min-height: 0;
+    scroll-padding-bottom: 81px;
   }
 
   .section-header {
