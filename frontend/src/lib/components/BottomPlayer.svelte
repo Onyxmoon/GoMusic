@@ -1,9 +1,10 @@
 <script lang="ts">
   // Stores
   import { player } from '../stores/player.svelte';
+  import { fade } from 'svelte/transition';
 
   // Icons
-  import { Shuffle, Maximize2 } from 'lucide-svelte';
+  import { Shuffle, Maximize2, Eye } from 'lucide-svelte';
 
   // Utils & Composables
   import { extractColorsFromImage } from '../utils/colorExtractor';
@@ -83,6 +84,13 @@
 <div class="bottom-player" class:playing={player.isPlaying} style="--c1: {colors.color1}; --c2: {colors.color2}; --c3: {colors.color3};">
   {#if player.currentTrack}
     <TrackInfo track={player.currentTrack} />
+
+    {#if player.previewMode}
+      <div class="preview-badge" transition:fade={{ duration: 200 }}>
+        <span class="badge-icon"><Eye size={11} /></span>
+        <span class="badge-text">Preview Mode</span>
+      </div>
+    {/if}
 
     <div class="player-center">
       <PlaybackControls
@@ -280,5 +288,33 @@
     width: 100%;
     text-align: center;
     color: #9ca3af;
+  }
+
+  /* Preview Mode Badge */
+  .preview-badge {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: rgba(205, 185, 255, 0.8);
+    border: 1px solid rgba(138, 101, 255, 0.4);
+    border-radius: 20px;
+    backdrop-filter: blur(8px);
+    font-size: 12px;
+    font-weight: 600;
+    color: #5a3cb8;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .badge-icon {
+    font-size: 14px;
+    line-height: 1;
+  }
+
+  .badge-text {
+    letter-spacing: 0.02em;
   }
 </style>

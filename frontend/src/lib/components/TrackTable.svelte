@@ -1,8 +1,16 @@
 <script lang="ts">
+    // Types
     import type {dto} from '../../../wailsjs/go/models';
+
+    // Icons
     import {MoreVertical, Play} from 'lucide-svelte';
+
+    // Components
     import NowPlayingIndicator from './NowPlayingIndicator.svelte';
+
+    // Stores
     import {player} from '../stores/player.svelte';
+    import {keyboardShortcuts} from '../stores/keyboardShortcuts.svelte';
 
     interface Props {
         tracks: dto.TrackDTO[];
@@ -13,34 +21,92 @@
         tracks = [], onTrackClick = () => {
         }
     }: Props = $props();
-
     let selectedIndex = $state(0);
+    let trackRows: HTMLDivElement[] = [];
 
-    function keyboardNav(node: HTMLElement) {
-        node.tabIndex = 0;
+    const scrollToSelected = () => {
+        trackRows[selectedIndex]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    };
 
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (!tracks.length) return;
+    $effect(() => {
+        return keyboardShortcuts.register({
+            viewId: 'library-tracktable',
+            priority: 500,
+            condition: () => tracks.length > 0, // Only active when tracks exist
+            shortcuts: [
+                {
+                    key: 'ArrowDown',
+                    handler: (e) => {
+                        e.preventDefault();
+                        selectedIndex = Math.min(selectedIndex + 1, tracks.length - 1);
+                        scrollToSelected();
 
-            switch (e.key) {
-                case 'ArrowDown':
-                    e.preventDefault();
-                    selectedIndex = Math.min(selectedIndex + 1, tracks.length - 1);
-                    break;
-                case 'ArrowUp':
-                    e.preventDefault();
-                    selectedIndex = Math.max(selectedIndex - 1, 0);
-                    break;
-                case 'Enter':
-                    e.preventDefault();
-                    onTrackClick(tracks[selectedIndex]);
-                    break;
-            }
-        };
+                        // Preview Mode: Auto-play on navigation
+                        if (player.previewMode) {
+                            const track = tracks[selectedIndex];
+                            if (track) {
+                                player.setPlaylist(tracks, selectedIndex);
+                                player.play(track);
+                            }
+                        }
+                        return true;
+                    },
+                    description: 'Navigate to next track'
+                },
+                {
+                    key: 'ArrowUp',
+                    handler: (e) => {
+                        e.preventDefault();
+                        selectedIndex = Math.max(selectedIndex - 1, 0);
+                        scrollToSelected();
 
-        node.addEventListener('keydown', handleKeyDown);
-        return {destroy: () => node.removeEventListener('keydown', handleKeyDown)};
-    }
+                        // Preview Mode: Auto-play on navigation
+                        if (player.previewMode) {
+                            const track = tracks[selectedIndex];
+                            if (track) {
+                                player.setPlaylist(tracks, selectedIndex);
+                                player.play(track);
+                            }
+                        }
+                        return true;
+                    },
+                    description: 'Navigate to previous track'
+                },
+                {
+                    key: 'Enter',
+                    handler: (e) => {
+                        e.preventDefault();
+                        onTrackClick(tracks[selectedIndex]);
+                        return true;
+                    },
+                    description: 'Play selected track'
+                },
+                {
+                    key: 'p',
+                    handler: (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        player.togglePreviewMode();
+
+                        // Start playback directly
+                        if (player.previewMode && !player.isPlaying) {
+                            const track = tracks[selectedIndex];
+                            if (track) {
+                                player.setPlaylist(tracks, selectedIndex);
+                                player.play(track);
+                            }
+                        }
+                        return true;
+                    },
+                    description: 'Toggle preview mode'
+                }
+            ]
+        });
+    });
+
+    // ============================================================================
+    // Helper Functions
+    // ============================================================================
 
     const formatDuration = (seconds: number): string => {
         const mins = Math.floor(seconds / 60);
@@ -62,13 +128,15 @@
         <div class="col col-time">Time</div>
     </div>
 
-    <div class="table-body" use:keyboardNav>
+    <div class="table-body">
         {#each tracks as track, index}
             {@const {isCurrentTrack, isPlaying} = player.isTrackPlaying(track.id)}
             {@const isPaused = isCurrentTrack && !isPlaying}
             <div
+                    bind:this={trackRows[index]}
                     class="track-row"
                     class:selected={selectedIndex === index}
+                    class:preview-active={selectedIndex === index && player.previewMode}
                     onclick={() => handleClick(track, index)}
                     role="button"
                     tabindex="-1"
@@ -155,6 +223,40 @@
 
     .track-row.selected:hover {
         background: rgba(255, 255, 255, 0.6);
+    }
+
+    /* track-row.previewModeAnimation */
+    @keyframes shimmer {
+        0% {
+            transform: translateX(-100%);
+        }
+        100% {
+            transform: translateX(100%);
+        }
+    }
+
+    .track-row.selected.preview-active {
+        position: relative;
+        background: rgba(138, 101, 255, 0.08);
+        border-color: rgba(138, 101, 255, 0.4);
+        overflow: hidden;
+    }
+
+    .track-row.selected.preview-active::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+                90deg,
+                transparent 0%,
+                rgba(138, 101, 255, 0.3) 50%,
+                transparent 100%
+        );
+        animation: shimmer 2s ease-in-out infinite;
+        pointer-events: none;
     }
 
     /* Columns Base */

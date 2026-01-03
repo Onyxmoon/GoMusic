@@ -15,6 +15,7 @@ class PlayerStore {
   // Additional features
   repeatMode = $state<'none' | 'all' | 'one'>('none');
   shuffleEnabled = $state<boolean>(false);
+  previewMode = $state<boolean>(false);
 
   duration = $derived(this.currentTrack?.duration || 0);
   progress = $derived(
@@ -40,6 +41,7 @@ class PlayerStore {
   /**
    * Play a specific track
    * This sets the track as current and starts playback
+   * In preview mode, automatically seeks to 1/15th of the track
    */
   play(track: dto.TrackDTO) {
     if (!track) return;
@@ -213,6 +215,14 @@ class PlayerStore {
   toggleShuffle() {
     this.shuffleEnabled = !this.shuffleEnabled;
     // TODO: Implement shuffle logic (create shuffled playlist)
+  }
+
+  /**
+   * Toggle preview mode
+   * In preview mode, arrow keys auto-play tracks for quick browsing
+   */
+  togglePreviewMode() {
+    this.previewMode = !this.previewMode;
   }
 
   /**
