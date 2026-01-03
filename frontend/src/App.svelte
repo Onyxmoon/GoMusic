@@ -6,42 +6,11 @@
   import Library from './lib/features/LibraryNew.svelte';
   import Sources from './lib/features/Sources.svelte';
   import FileBrowser from './lib/features/FileBrowser.svelte';
+  import { player } from './lib/stores/player.svelte';
+  import { keyboardShortcuts } from './lib/stores/keyboardShortcuts.svelte';
 
-  let activeTab = 'library';
-  let activeSection = 'tracks';
-
-  $: currentView = getView(activeTab, activeSection);
-
-  // Reset section when tab changes
-  $: if (activeTab) {
-    activeSection = getDefaultSection(activeTab);
-  }
-
-  function getDefaultSection(tab: string): string {
-    switch (tab) {
-      case 'library':
-        return 'tracks';
-      case 'files':
-        return 'browser';
-      case 'sources':
-        return 'all';
-      default:
-        return 'tracks';
-    }
-  }
-
-  function getView(tab: string, section: string) {
-    switch (tab) {
-      case 'library':
-        return Library;
-      case 'sources':
-        return Sources;
-      case 'files':
-        return FileBrowser;
-      default:
-        return Library;
-    }
-  }
+  let activeTab = $state('library');
+  let activeSection = $state('tracks');
 
   function handleSectionChange(event: CustomEvent) {
     activeSection = event.detail.section;
@@ -51,12 +20,54 @@
     const { type } = event.detail;
     if (type === 'new-playlist') {
       console.log('Create new playlist');
-      // TODO: Implement playlist creation
     } else if (type === 'add-source') {
       console.log('Add new source');
-      // TODO: Trigger add source dialog
     }
   }
+
+  $effect(() => {
+      const unregister = keyboardShortcuts.register({
+          viewId: 'global-player',
+          priority: 50, // Low priority - only when no view handles it
+          shortcuts: [
+              {
+                  key: ' ',
+                  ctrl: false,
+                  handler: (e) => {
+                      e.preventDefault();
+                      if (player.currentTrack) {
+                          player.isPlaying ? player.pause() : player.resume();
+                      }
+                      return true;
+                  },
+                  description: 'Play/Pause current track'
+              },
+              {
+                  key: 'ArrowRight',
+                  ctrl: true,
+                  handler: (e) => {
+                      e.preventDefault();
+                      if (player.canGoNext) player.next();
+                      return true;
+                  },
+                  description: 'Next track'
+              },
+              {
+                  key: 'ArrowLeft',
+                  ctrl: true,
+                  handler: (e) => {
+                      e.preventDefault();
+                      if (player.canGoPrevious) player.previous();
+                      return true;
+                  },
+                  description: 'Previous track'
+              }
+          ]
+      });
+
+      return unregister;
+  });
+
 </script>
 
 <div class="app">
@@ -106,7 +117,7 @@
     transition: background-color 0.2s ease;
   }
 
-  :global(div:hover::-webkit-scrollbar-thumb) {
+  :global(*:hover::-webkit-scrollbar-thumb) {
     background-color: rgba(138, 101, 255, 0.5);
   }
 
