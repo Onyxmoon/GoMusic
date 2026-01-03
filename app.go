@@ -309,11 +309,7 @@ func (a *App) serveAudioFile(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	// Stream the file
-	if _, err := io.Copy(w, file); err != nil {
-		if r.Context().Err() == nil {
-			fmt.Printf("Error streaming audio file: %v\n", err)
-		}
-	}
+	_, _ = io.Copy(w, file)
 }
 
 // serveArtworkFile handles HTTP requests for serving album artwork by track ID
