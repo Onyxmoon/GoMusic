@@ -32,7 +32,7 @@
   // Effect: Volume control
   $effect(() => {
     if (audioElement) {
-      audioElement.volume = player.isMuted ? 0 : player.volume;
+      audioElement.volume = player.isMuted ? 0 : player.actualVolume;
     }
   });
 
@@ -152,7 +152,7 @@
   onMount(() => {
     // Initialize audio element properties
     if (audioElement) {
-      audioElement.volume = player.volume;
+      audioElement.volume = player.actualVolume;
       audioElement.preload = 'metadata';
     }
 

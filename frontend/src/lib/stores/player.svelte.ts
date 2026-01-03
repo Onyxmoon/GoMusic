@@ -21,6 +21,18 @@ class PlayerStore {
     this.duration > 0 ? (this.currentTime / this.duration) * 100 : 0
   );
 
+  // Logarithmic volume curve
+  actualVolume = $derived.by(() => {
+    if (this.volume === 0) return 0;
+
+    const minDb = -60;
+    const maxDb = 0;
+    const db = minDb + (maxDb - minDb) * this.volume;
+
+    // Convert dB to linear gain: gain = 10^(dB/20)
+    return Math.pow(10, db / 20);
+  });
+
   // Check if we can go to next/previous track
   canGoNext = $derived(this.currentIndex < this.playlist.length - 1);
   canGoPrevious = $derived(this.currentIndex > 0);
@@ -34,7 +46,12 @@ class PlayerStore {
 
     this.currentTrack = track;
     this.isPlaying = true;
-    this.currentTime = 0;
+
+    if (this.previewMode && track.duration) {
+      this.currentTime = track.duration / 15;
+    } else {
+      this.currentTime = 0;
+    }
   }
 
   /**
