@@ -2,6 +2,8 @@
 
 > **Work in Progress** - This project is still in active development
 
+![img.png](README.md.assets/img.png)
+
 A prototype desktop music player built with Go and Svelte. Just me experimenting
 
 ## Stack
