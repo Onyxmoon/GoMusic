@@ -2,10 +2,57 @@
   import type { dto } from '../../../wailsjs/go/models';
   import { player } from '../stores/player.svelte';
   import { Play } from 'lucide-svelte';
+  import NowPlayingIndicator from './NowPlayingIndicator.svelte';
 
-  export let tracks: dto.TrackDTO[];
-  export let showAlbum: boolean = true;
-  export let showArtist: boolean = true;
+  interface Props {
+    tracks: dto.TrackDTO[];
+    showAlbum?: boolean;
+    showArtist?: boolean;
+  }
+
+  let { tracks, showAlbum = true, showArtist = true }: Props = $props();
+
+  let selectedIndex = $state<number>(0);
+  let isFocused = $state<boolean>(false);
+  let trackRows: HTMLDivElement[] = [];
+  let containerRef: HTMLDivElement;
+
+  $effect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      console.log('Global keydown:', e.key, 'isFocused:', isFocused);
+
+      if (!isFocused || tracks.length === 0) return;
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (selectedIndex < tracks.length - 1) {
+          selectedIndex++;
+          scrollToSelected();
+        }
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (selectedIndex > 0) {
+          selectedIndex--;
+          scrollToSelected();
+        }
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        playTrack(tracks[selectedIndex]);
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown);
+    console.log('Event listener attached');
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      console.log('Event listener removed');
+    };
+  });
+
+  function scrollToSelected() {
+    trackRows[selectedIndex]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
 
   function formatDuration(seconds: number): string {
     const mins = Math.floor(seconds / 60);
@@ -23,12 +70,33 @@
       player.play(tracks[0]);
     }
   }
+
+  function handleTrackClick(track: dto.TrackDTO, index: number) {
+    console.log('Track clicked:', track.title, 'index:', index);
+    selectedIndex = index;
+    playTrack(track);
+    console.log('About to focus container, containerRef:', containerRef);
+    containerRef?.focus();
+  }
 </script>
 
-<div class="track-list">
+<div
+  bind:this={containerRef}
+  class="track-list"
+  onfocus={() => {
+    isFocused = true;
+    console.log('Container focused, isFocused:', isFocused);
+  }}
+  onblur={() => {
+    isFocused = false;
+    console.log('Container blurred, isFocused:', isFocused);
+  }}
+  role="region"
+  tabindex="0"
+>
   {#if tracks.length > 0}
     <div class="track-list-header">
-      <button class="play-all-btn" on:click={playAll}>
+      <button class="play-all-btn" onclick={playAll}>
         <Play size={16} style="margin-right: 6px;" />
         Play All
       </button>
@@ -50,13 +118,20 @@
 
       {#each tracks as track, index}
         <div
+          bind:this={trackRows[index]}
           class="track-row"
-          on:click={() => playTrack(track)}
+          class:selected={selectedIndex === index}
+          onclick={() => handleTrackClick(track, index)}
+          onkeydown={(e) => e.key === 'Enter' && handleTrackClick(track, index)}
           role="button"
-          tabindex="0"
-          on:keydown={(e) => e.key === 'Enter' && playTrack(track)}
+          tabindex="-1"
         >
-          <div class="track-col track-col-number">{index + 1}</div>
+          <div class="track-col track-col-number">
+            <NowPlayingIndicator trackId={track.id} size={12} />
+            <span class="track-num" class:hidden={player.currentTrack?.id === track.id}>
+              {index + 1}
+            </span>
+          </div>
           <div class="track-col track-col-title">
             <div class="track-title">{track.title}</div>
           </div>
@@ -82,6 +157,10 @@
 <style>
   .track-list {
     width: 100%;
+  }
+
+  .track-list:focus {
+    outline: none;
   }
 
   .track-list-header {
@@ -134,10 +213,22 @@
     border-radius: 4px;
     cursor: pointer;
     transition: all 0.15s ease;
+    outline: none;
+    width: 100%;
+    border: none;
   }
 
   .track-row:hover {
     background: #2a2e39;
+  }
+
+  .track-row.selected {
+    background: #3a3f4b;
+    box-shadow: inset 0 0 0 2px #5b8cff;
+  }
+
+  .track-row.selected:hover {
+    background: #3a3f4b;
   }
 
   .track-col {
@@ -148,7 +239,17 @@
   }
 
   .track-col-number {
+    position: relative;
+    justify-content: center;
     color: #9ca3af;
+  }
+
+  .track-num {
+    transition: opacity 0.15s ease;
+  }
+
+  .track-num.hidden {
+    opacity: 0;
   }
 
   .track-title {

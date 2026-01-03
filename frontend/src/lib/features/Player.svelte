@@ -260,15 +260,6 @@
     cursor: pointer;
   }
 
-  .volume-slider::-moz-range-thumb {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: #5b8cff;
-    cursor: pointer;
-    border: none;
-  }
-
   .player-empty {
     width: 100%;
     text-align: center;

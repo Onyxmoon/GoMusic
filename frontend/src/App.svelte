@@ -90,6 +90,30 @@
 </div>
 
 <style>
+  /* Global Scrollbar Styles */
+  :global(::-webkit-scrollbar) {
+    width: 8px;
+    height: 8px;
+  }
+
+  :global(::-webkit-scrollbar-track) {
+    background: transparent;
+  }
+
+  :global(::-webkit-scrollbar-thumb) {
+    background-color: transparent;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+  }
+
+  :global(div:hover::-webkit-scrollbar-thumb) {
+    background-color: rgba(138, 101, 255, 0.5);
+  }
+
+  :global(::-webkit-scrollbar-thumb:hover) {
+    background-color: rgba(138, 101, 255, 0.8);
+  }
+
   .app {
     width: 100vw;
     height: 100vh;

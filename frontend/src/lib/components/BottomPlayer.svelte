@@ -1,23 +1,50 @@
 <script lang="ts">
+  // Stores
   import { player } from '../stores/player.svelte';
-  import { SkipBack, Play, Pause, SkipForward, Heart, Shuffle, Volume2, Maximize2 } from 'lucide-svelte';
+
+  // Icons
+  import { Shuffle, Maximize2 } from 'lucide-svelte';
+
+  // Utils & Composables
   import { extractColorsFromImage } from '../utils/colorExtractor';
   import { formatTime } from '../utils/timeFormat';
-  import { lerpColor, easeInOutCubic, type RGB } from '../utils/colorAnimation';
-  import LiquidGlassProgress from './LiquidGlassProgress.svelte';
+  import { harmonizeColors } from '../utils/colorAnimation';
+  import { useColorAnimation } from '../composables/useColorAnimation.svelte';
 
-  let playerElement: HTMLDivElement;
+  // Constants
+  import { DEFAULT_COLORS, TINT_AMOUNT, MIN_BRIGHTNESS } from '../constants/playerTheme';
 
-  // Current colors for smooth interpolation
-  let currentColor1: RGB = { r: 255, g: 214, b: 214 };
-  let currentColor2: RGB = { r: 232, g: 213, b: 255 };
-  let currentColor3: RGB = { r: 213, g: 232, b: 255 };
+  // Components
+  import LiquidGlassProgress from './BottomPlayer/LiquidGlassProgress.svelte';
+  import TrackInfo from './BottomPlayer/TrackInfo.svelte';
+  import PlaybackControls from './BottomPlayer/PlaybackControls.svelte';
+  import VolumeControl from './BottomPlayer/VolumeControl.svelte';
 
-  let color1 = $state('255, 214, 214');
-  let color2 = $state('232, 213, 255');
-  let color3 = $state('213, 232, 255');
 
-  let animationFrameId: number | null = null;
+  //// Color Animation
+
+  const colors = useColorAnimation();
+
+  // Extract colors from album artwork and apply to player background
+  $effect(() => {
+    if (player.currentTrack?.hasArtwork) {
+      const artworkUrl = `/artwork/stream?id=${encodeURIComponent(player.currentTrack.id)}`;
+      extractColorsFromImage(artworkUrl)
+        .then(extractedColors => {
+          const harmonized = harmonizeColors(extractedColors, TINT_AMOUNT, MIN_BRIGHTNESS);
+          colors.animateColors(harmonized[0], harmonized[1], harmonized[2]);
+        })
+        .catch(() => {
+          colors.animateColors(DEFAULT_COLORS[0], DEFAULT_COLORS[1], DEFAULT_COLORS[2]);
+        });
+    } else {
+      colors.animateColors(DEFAULT_COLORS[0], DEFAULT_COLORS[1], DEFAULT_COLORS[2]);
+    }
+  });
+
+  // ============================================================================
+  // Event Handlers
+  // ============================================================================
 
   function handleProgressClick(e: MouseEvent) {
     const target = e.currentTarget as HTMLElement;
@@ -35,118 +62,35 @@
     }
   }
 
-  function animateColors(target1: RGB, target2: RGB, target3: RGB) {
-    if (animationFrameId !== null) {
-      cancelAnimationFrame(animationFrameId);
-    }
-
-    const start1 = { ...currentColor1 };
-    const start2 = { ...currentColor2 };
-    const start3 = { ...currentColor3 };
-
-    const duration = 1200; // 1.2 seconds
-    const startTime = performance.now();
-
-    function animate(currentTime: number) {
-      const elapsed = currentTime - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const easedProgress = easeInOutCubic(progress);
-
-      const interpolated1 = lerpColor(start1, target1, easedProgress);
-      const interpolated2 = lerpColor(start2, target2, easedProgress);
-      const interpolated3 = lerpColor(start3, target3, easedProgress);
-
-      color1 = `${interpolated1.r}, ${interpolated1.g}, ${interpolated1.b}`;
-      color2 = `${interpolated2.r}, ${interpolated2.g}, ${interpolated2.b}`;
-      color3 = `${interpolated3.r}, ${interpolated3.g}, ${interpolated3.b}`;
-
-      if (progress < 1) {
-        animationFrameId = requestAnimationFrame(animate);
-      } else {
-        currentColor1 = target1;
-        currentColor2 = target2;
-        currentColor3 = target3;
-        animationFrameId = null;
-      }
-    }
-
-    animationFrameId = requestAnimationFrame(animate);
+  function handleVolumeChange(volume: number) {
+    player.setVolume(volume);
   }
 
-  // Extract colors from album artwork and apply to player background
-  $effect(() => {
-    if (player.currentTrack?.hasArtwork) {
-      const artworkUrl = `/artwork/stream?id=${encodeURIComponent(player.currentTrack.id)}`;
-      extractColorsFromImage(artworkUrl)
-        .then(colors => {
-          const harmonized = colors.map(c => {
-            const tintAmount = 0.15; // Reduced from 0.4 for more color intensity
-            const r = Math.round(c.r + (255 - c.r) * tintAmount);
-            const g = Math.round(c.g + (255 - c.g) * tintAmount);
-            const b = Math.round(c.b + (255 - c.b) * tintAmount);
+  function handlePrevious() {
+    player.previous();
+  }
 
-            const brightness = (r + g + b) / 3;
-            const minBrightness = 100;
+  function handleNext() {
+    player.next();
+  }
 
-            if (brightness < minBrightness) {
-              const boost = minBrightness - brightness;
-              return {
-                r: Math.min(255, r + boost),
-                g: Math.min(255, g + boost),
-                b: Math.min(255, b + boost)
-              };
-            }
-            return { r, g, b };
-          });
-
-          animateColors(harmonized[0], harmonized[1], harmonized[2]);
-        })
-        .catch(() => {
-          animateColors(
-            { r: 255, g: 214, b: 214 },
-            { r: 232, g: 213, b: 255 },
-            { r: 213, g: 232, b: 255 }
-          );
-        });
-    } else {
-      animateColors(
-        { r: 255, g: 214, b: 214 },
-        { r: 232, g: 213, b: 255 },
-        { r: 213, g: 232, b: 255 }
-      );
-    }
-  });
+  function handleToggleMute() {
+    player.toggleMute();
+  }
 </script>
 
-<div class="bottom-player" class:playing={player.isPlaying} bind:this={playerElement} style="--c1: {color1}; --c2: {color2}; --c3: {color3};">
+
+<div class="bottom-player" class:playing={player.isPlaying} style="--c1: {colors.color1}; --c2: {colors.color2}; --c3: {colors.color3};">
   {#if player.currentTrack}
-    <div class="player-left">
-      <div class="track-cover">
-        {#if player.currentTrack.hasArtwork}
-          <img src={`/artwork/stream?id=${encodeURIComponent(player.currentTrack.id)}`} alt={player.currentTrack.title} />
-        {:else}
-          <div class="cover-placeholder"></div>
-        {/if}
-      </div>
-      <div class="track-info">
-        <div class="track-title">{player.currentTrack.title}</div>
-        <div class="track-artist">{player.currentTrack.artist}</div>
-      </div>
-      <button class="heart-btn"><Heart size={18} /></button>
-    </div>
+    <TrackInfo track={player.currentTrack} />
 
     <div class="player-center">
-      <div class="controls">
-        <button class="control-btn" onclick={player.previous}><SkipBack size={18} /></button>
-        <button class="control-btn play-btn" onclick={togglePlayPause}>
-          {#if player.isPlaying}
-            <Pause size={18} />
-          {:else}
-            <Play size={18} />
-          {/if}
-        </button>
-        <button class="control-btn" onclick={player.next}><SkipForward size={18} /></button>
-      </div>
+      <PlaybackControls
+        isPlaying={player.isPlaying}
+        onPlayPause={togglePlayPause}
+        onPrevious={handlePrevious}
+        onNext={handleNext}
+      />
 
       <div class="progress-section">
         <span class="time">{formatTime(player.currentTime)}</span>
@@ -156,9 +100,14 @@
     </div>
 
     <div class="player-right">
-      <button class="icon-btn"><Shuffle size={16} /></button>
-      <button class="icon-btn"><Volume2 size={16} /></button>
-      <button class="icon-btn"><Maximize2 size={16} /></button>
+      <button class="icon-btn" aria-label="Toggle shuffle"><Shuffle size={16} /></button>
+      <VolumeControl
+        volume={player.volume}
+        isMuted={player.isMuted}
+        onVolumeChange={handleVolumeChange}
+        onToggleMute={handleToggleMute}
+      />
+      <button class="icon-btn" aria-label="Toggle fullscreen"><Maximize2 size={16} /></button>
     </div>
   {:else}
     <div class="player-empty">
@@ -167,7 +116,9 @@
   {/if}
 </div>
 
+
 <style>
+  /* Aurora Animations */
   @keyframes auroraFlow1 {
     0% {
       transform: translate(-30%, -20%) rotate(-5deg);
@@ -210,25 +161,7 @@
     }
   }
 
-  @keyframes auroraFlow3 {
-    0% {
-      transform: translate(-15%, 30%) rotate(-2deg);
-      opacity: 0.3;
-    }
-    40% {
-      transform: translate(25%, -25%) rotate(5deg);
-      opacity: 0.5;
-    }
-    80% {
-      transform: translate(-35%, 15%) rotate(-3deg);
-      opacity: 0.4;
-    }
-    100% {
-      transform: translate(-15%, 30%) rotate(-2deg);
-      opacity: 0.3;
-    }
-  }
-
+  /* Main Player Container */
   .bottom-player {
     position: fixed;
     bottom: 0;
@@ -247,7 +180,7 @@
     overflow: hidden;
   }
 
-  /* Aurora Layer 1 - Balanced flowing gradient */
+  /* Aurora Background Layers */
   .bottom-player::before {
     content: '';
     position: absolute;
@@ -265,9 +198,9 @@
     filter: blur(50px);
     pointer-events: none;
     z-index: 0;
+    animation: auroraFlow1 35s ease-in-out infinite;
   }
 
-  /* Aurora Layer 2 - Balanced counter flow */
   .bottom-player::after {
     content: '';
     position: absolute;
@@ -285,87 +218,10 @@
     filter: blur(55px);
     pointer-events: none;
     z-index: 0;
-  }
-
-  .bottom-player::before {
-    animation: auroraFlow1 35s ease-in-out infinite;
-  }
-
-  .bottom-player::after {
     animation: auroraFlow2 50s ease-in-out infinite;
   }
 
-  .player-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex: 1;
-    min-width: 0;
-    position: relative;
-    z-index: 1;
-  }
-
-  .track-cover {
-    width: 56px;
-    height: 56px;
-    border-radius: 8px;
-    overflow: hidden;
-    flex-shrink: 0;
-  }
-
-  .track-cover img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  .cover-placeholder {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, #8a65ff, #ff6b9d);
-    font-size: 24px;
-  }
-
-  .track-info {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .track-title {
-    font-size: 14px;
-    font-weight: 500;
-    color: #2d2d2d;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .track-artist {
-    font-size: 12px;
-    color: #31343a;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .heart-btn {
-    width: 32px;
-    height: 32px;
-    border: none;
-    background: transparent;
-    color: #31343a;
-    font-size: 18px;
-    cursor: pointer;
-    transition: all 0.15s ease;
-  }
-
-  .heart-btn:hover {
-    color: #ff5686;
-  }
-
+  /* Player Sections */
   .player-center {
     flex: 1;
     display: flex;
@@ -374,42 +230,6 @@
     align-items: center;
     position: relative;
     z-index: 1;
-  }
-
-  .controls {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-  }
-
-  .control-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    border: none;
-    background: transparent;
-    color: #2d2d2d;
-    font-size: 16px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.15s ease;
-  }
-
-  .control-btn:hover {
-    background: rgba(0, 0, 0, 0.05);
-  }
-
-  .play-btn {
-    width: 40px;
-    height: 40px;
-    background: #2d2d2d;
-    color: white;
-  }
-
-  .play-btn:hover {
-    background: #1a1a1a;
   }
 
   .progress-section {
@@ -437,6 +257,7 @@
     z-index: 1;
   }
 
+  /* Buttons */
   .icon-btn {
     width: 32px;
     height: 32px;
@@ -454,6 +275,7 @@
     color: #2d2d2d;
   }
 
+  /* Empty State */
   .player-empty {
     width: 100%;
     text-align: center;

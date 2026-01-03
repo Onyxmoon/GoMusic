@@ -310,7 +310,9 @@ func (a *App) serveAudioFile(w http.ResponseWriter, r *http.Request) {
 
 	// Stream the file
 	if _, err := io.Copy(w, file); err != nil {
-		fmt.Printf("Error streaming audio file: %v\n", err)
+		if r.Context().Err() == nil {
+			fmt.Printf("Error streaming audio file: %v\n", err)
+		}
 	}
 }
 

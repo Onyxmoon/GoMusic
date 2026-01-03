@@ -220,6 +220,19 @@ class PlayerStore {
       this.currentTime = 0;
     }
   }
+
+  /**
+   * Check if a specific track is currently playing
+   * @param trackId - The ID of the track to check
+   * @returns Object with isCurrentTrack and isPlaying flags
+   */
+  isTrackPlaying(trackId: string): { isCurrentTrack: boolean; isPlaying: boolean } {
+    const isCurrentTrack = this.currentTrack?.id === trackId;
+    return {
+      isCurrentTrack,
+      isPlaying: isCurrentTrack && this.isPlaying
+    };
+  }
 }
 
 // Export a single instance

@@ -258,42 +258,6 @@
     overflow-y: auto;
     overflow-x: hidden;
     min-height: 0;
-
-    /* Firefox */
-    scrollbar-width: thin;
-    scrollbar-color: transparent transparent;
-  }
-
-  .track-table-container:hover {
-    scrollbar-color: rgba(138, 101, 255, 0.6) rgba(0, 0, 0, 0.05);
-  }
-
-  /* WebKit browsers (Chrome, Safari, Edge) */
-  .track-table-container::-webkit-scrollbar {
-    width: 8px;
-  }
-
-  .track-table-container::-webkit-scrollbar-track {
-    background: transparent;
-    transition: background-color 0.2s ease;
-  }
-
-  .track-table-container::-webkit-scrollbar-thumb {
-    background-color: transparent;
-    border-radius: 4px;
-    transition: background-color 0.2s ease;
-  }
-
-  .track-table-container:hover::-webkit-scrollbar-track {
-    background-color: rgba(0, 0, 0, 0.05);
-  }
-
-  .track-table-container:hover::-webkit-scrollbar-thumb {
-    background-color: rgba(138, 101, 255, 0.5);
-  }
-
-  .track-table-container::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(138, 101, 255, 0.8);
   }
 
   .section-header {
