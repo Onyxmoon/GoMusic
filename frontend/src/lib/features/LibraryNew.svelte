@@ -2,7 +2,9 @@
   import { onMount } from 'svelte';
   import { GetAllTracks, ScanAllLibraries } from '../../../wailsjs/go/main/App.js';
   import { tracks, isLoading, error } from '../stores/library';
-  import { EventsOn } from '../../../wailsjs/runtime/runtime.js';
+  import { EventsOn } from '../../../wailsjs/runtime';
+  import type { dto } from '../../../wailsjs/go/models';
+  import type { ScanErrorEvent } from '../types/events';
   import TrackTable from '../components/TrackTable.svelte';
   import { player } from '../stores/player.svelte';
   import { RefreshCw, AlertTriangle, X, Music, Disc, Mic, List } from 'lucide-svelte';
@@ -53,7 +55,7 @@
       await loadTracks();
     });
 
-    EventsOn('scan:error', (data: any) => {
+    EventsOn('scan:error', (data: ScanErrorEvent) => {
       console.error('Scan error:', data);
       error.set(data.error || 'Scan failed');
       isScanning = false;
@@ -67,7 +69,7 @@
     }
   }
 
-  function handleTrackClick(track: any) {
+  function handleTrackClick(track: dto.TrackDTO) {
     player.setPlaylist($tracks, $tracks.indexOf(track));
     player.play(track);
   }
@@ -256,42 +258,7 @@
     overflow-y: auto;
     overflow-x: hidden;
     min-height: 0;
-
-    /* Firefox */
-    scrollbar-width: thin;
-    scrollbar-color: transparent transparent;
-  }
-
-  .track-table-container:hover {
-    scrollbar-color: rgba(138, 101, 255, 0.6) rgba(0, 0, 0, 0.05);
-  }
-
-  /* WebKit browsers (Chrome, Safari, Edge) */
-  .track-table-container::-webkit-scrollbar {
-    width: 8px;
-  }
-
-  .track-table-container::-webkit-scrollbar-track {
-    background: transparent;
-    transition: background-color 0.2s ease;
-  }
-
-  .track-table-container::-webkit-scrollbar-thumb {
-    background-color: transparent;
-    border-radius: 4px;
-    transition: background-color 0.2s ease;
-  }
-
-  .track-table-container:hover::-webkit-scrollbar-track {
-    background-color: rgba(0, 0, 0, 0.05);
-  }
-
-  .track-table-container:hover::-webkit-scrollbar-thumb {
-    background-color: rgba(138, 101, 255, 0.5);
-  }
-
-  .track-table-container::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(138, 101, 255, 0.8);
+    scroll-padding-bottom: 81px;
   }
 
   .section-header {

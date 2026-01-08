@@ -1,25 +1,38 @@
-import type { TrackDTO } from '../types/track';
+import type { dto } from '../../../wailsjs/go/models';
 
 /**
  * Manages audio playback state and playlist queue
  */
 class PlayerStore {
-  currentTrack = $state<TrackDTO | null>(null);
+  currentTrack = $state<dto.TrackDTO | null>(null);
   isPlaying = $state<boolean>(false);
   currentTime = $state<number>(0);
   volume = $state<number>(0.8);
   isMuted = $state<boolean>(false);
-  playlist = $state<TrackDTO[]>([]);
+  playlist = $state<dto.TrackDTO[]>([]);
   currentIndex = $state<number>(-1);
 
   // Additional features
   repeatMode = $state<'none' | 'all' | 'one'>('none');
   shuffleEnabled = $state<boolean>(false);
+  previewMode = $state<boolean>(false);
 
   duration = $derived(this.currentTrack?.duration || 0);
   progress = $derived(
     this.duration > 0 ? (this.currentTime / this.duration) * 100 : 0
   );
+
+  // Logarithmic volume curve
+  actualVolume = $derived.by(() => {
+    if (this.volume === 0) return 0;
+
+    const minDb = -60;
+    const maxDb = 0;
+    const db = minDb + (maxDb - minDb) * this.volume;
+
+    // Convert dB to linear gain: gain = 10^(dB/20)
+    return Math.pow(10, db / 20);
+  });
 
   // Check if we can go to next/previous track
   canGoNext = $derived(this.currentIndex < this.playlist.length - 1);
@@ -28,13 +41,19 @@ class PlayerStore {
   /**
    * Play a specific track
    * This sets the track as current and starts playback
+   * In preview mode, automatically seeks to 1/15th of the track
    */
-  play(track: TrackDTO) {
+  play(track: dto.TrackDTO) {
     if (!track) return;
 
     this.currentTrack = track;
     this.isPlaying = true;
-    this.currentTime = 0;
+
+    if (this.previewMode && track.duration) {
+      this.currentTime = track.duration / 15;
+    } else {
+      this.currentTime = 0;
+    }
   }
 
   /**
@@ -152,7 +171,7 @@ class PlayerStore {
   /**
    * Set the current playlist and optionally start playing
    */
-  setPlaylist(tracks: TrackDTO[], startIndex: number = 0) {
+  setPlaylist(tracks: dto.TrackDTO[], startIndex: number = 0) {
     if (!tracks || tracks.length === 0) {
       this.playlist = [];
       this.currentIndex = -1;
@@ -199,6 +218,14 @@ class PlayerStore {
   }
 
   /**
+   * Toggle preview mode
+   * In preview mode, arrow keys auto-play tracks for quick browsing
+   */
+  togglePreviewMode() {
+    this.previewMode = !this.previewMode;
+  }
+
+  /**
    * Handle track end - automatically advance or repeat
    */
   handleTrackEnd() {
@@ -219,6 +246,19 @@ class PlayerStore {
       this.isPlaying = false;
       this.currentTime = 0;
     }
+  }
+
+  /**
+   * Check if a specific track is currently playing
+   * @param trackId - The ID of the track to check
+   * @returns Object with isCurrentTrack and isPlaying flags
+   */
+  isTrackPlaying(trackId: string): { isCurrentTrack: boolean; isPlaying: boolean } {
+    const isCurrentTrack = this.currentTrack?.id === trackId;
+    return {
+      isCurrentTrack,
+      isPlaying: isCurrentTrack && this.isPlaying
+    };
   }
 }
 

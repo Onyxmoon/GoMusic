@@ -6,6 +6,10 @@ export function AddFilesystemSource(arg1, arg2, arg3, arg4) {
   return window['go']['main']['App']['AddFilesystemSource'](arg1, arg2, arg3, arg4);
 }
 
+export function AudioFileMiddleware(arg1) {
+  return window['go']['main']['App']['AudioFileMiddleware'](arg1);
+}
+
 export function BrowseDirectory(arg1, arg2) {
   return window['go']['main']['App']['BrowseDirectory'](arg1, arg2);
 }
@@ -52,10 +56,6 @@ export function GetTracksByAlbum(arg1) {
 
 export function GetTracksByArtist(arg1) {
   return window['go']['main']['App']['GetTracksByArtist'](arg1);
-}
-
-export function Greet(arg1) {
-  return window['go']['main']['App']['Greet'](arg1);
 }
 
 export function RemoveSource(arg1) {

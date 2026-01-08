@@ -3,46 +3,14 @@
   import Sidebar from './lib/components/Sidebar.svelte';
   import BottomPlayer from './lib/components/BottomPlayer.svelte';
   import AudioPlayer from './lib/components/AudioPlayer.svelte';
-  import DynamicBackground from './lib/components/DynamicBackground.svelte';
   import Library from './lib/features/LibraryNew.svelte';
   import Sources from './lib/features/Sources.svelte';
   import FileBrowser from './lib/features/FileBrowser.svelte';
+  import { player } from './lib/stores/player.svelte';
+  import { keyboardShortcuts } from './lib/stores/keyboardShortcuts.svelte';
 
-  let activeTab = 'library';
-  let activeSection = 'tracks';
-
-  $: currentView = getView(activeTab, activeSection);
-
-  // Reset section when tab changes
-  $: if (activeTab) {
-    activeSection = getDefaultSection(activeTab);
-  }
-
-  function getDefaultSection(tab: string): string {
-    switch (tab) {
-      case 'library':
-        return 'tracks';
-      case 'files':
-        return 'browser';
-      case 'sources':
-        return 'all';
-      default:
-        return 'tracks';
-    }
-  }
-
-  function getView(tab: string, section: string) {
-    switch (tab) {
-      case 'library':
-        return Library;
-      case 'sources':
-        return Sources;
-      case 'files':
-        return FileBrowser;
-      default:
-        return Library;
-    }
-  }
+  let activeTab = $state('library');
+  let activeSection = $state('tracks');
 
   function handleSectionChange(event: CustomEvent) {
     activeSection = event.detail.section;
@@ -52,12 +20,54 @@
     const { type } = event.detail;
     if (type === 'new-playlist') {
       console.log('Create new playlist');
-      // TODO: Implement playlist creation
     } else if (type === 'add-source') {
       console.log('Add new source');
-      // TODO: Trigger add source dialog
     }
   }
+
+  $effect(() => {
+      const unregister = keyboardShortcuts.register({
+          viewId: 'global-player',
+          priority: 50, // Low priority - only when no view handles it
+          shortcuts: [
+              {
+                  key: ' ',
+                  ctrl: false,
+                  handler: (e) => {
+                      e.preventDefault();
+                      if (player.currentTrack) {
+                          player.isPlaying ? player.pause() : player.resume();
+                      }
+                      return true;
+                  },
+                  description: 'Play/Pause current track'
+              },
+              {
+                  key: 'ArrowRight',
+                  ctrl: true,
+                  handler: (e) => {
+                      e.preventDefault();
+                      if (player.canGoNext) player.next();
+                      return true;
+                  },
+                  description: 'Next track'
+              },
+              {
+                  key: 'ArrowLeft',
+                  ctrl: true,
+                  handler: (e) => {
+                      e.preventDefault();
+                      if (player.canGoPrevious) player.previous();
+                      return true;
+                  },
+                  description: 'Previous track'
+              }
+          ]
+      });
+
+      return unregister;
+  });
+
 </script>
 
 <div class="app">
@@ -73,7 +83,13 @@
       />
 
       <main class="main-content">
-        <svelte:component this={currentView} section={activeSection} />
+        {#if activeTab === 'library'}
+          <Library section={activeSection} />
+        {:else if activeTab === 'sources'}
+          <Sources />
+        {:else if activeTab === 'files'}
+          <FileBrowser />
+        {/if}
       </main>
     </div>
   </div>
@@ -82,12 +98,33 @@
 
   <!-- Audio Player (always running in background) -->
   <AudioPlayer />
-
-  <!-- Dynamic background gradient based on album artwork -->
-  <!-- <DynamicBackground /> -->
 </div>
 
 <style>
+  /* Global Scrollbar Styles */
+  :global(::-webkit-scrollbar) {
+    width: 8px;
+    height: 8px;
+  }
+
+  :global(::-webkit-scrollbar-track) {
+    background: transparent;
+  }
+
+  :global(::-webkit-scrollbar-thumb) {
+    background-color: transparent;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+  }
+
+  :global(*:hover::-webkit-scrollbar-thumb) {
+    background-color: rgba(138, 101, 255, 0.5);
+  }
+
+  :global(::-webkit-scrollbar-thumb:hover) {
+    background-color: rgba(138, 101, 255, 0.8);
+  }
+
   .app {
     width: 100vw;
     height: 100vh;

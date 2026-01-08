@@ -111,7 +111,7 @@ export namespace dto {
 	    format?: string;
 	    bitRate?: number;
 	    sampleRate?: number;
-	    artworkPath?: string;
+	    hasArtwork: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new TrackDTO(source);
@@ -138,7 +138,7 @@ export namespace dto {
 	        this.format = source["format"];
 	        this.bitRate = source["bitRate"];
 	        this.sampleRate = source["sampleRate"];
-	        this.artworkPath = source["artworkPath"];
+	        this.hasArtwork = source["hasArtwork"];
 	    }
 	}
 

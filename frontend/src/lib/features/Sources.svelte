@@ -142,7 +142,7 @@
               isEditMode={isEditMode}
               onSave={async (config) => {
                 try {
-                  if (isEditMode) {
+                  if (isEditMode && selectedSource) {
                     const { UpdateFilesystemSource } = await import('../../../wailsjs/go/main/App.js');
                     await UpdateFilesystemSource(
                       selectedSource.id,
@@ -169,7 +169,7 @@
                 }
               }}
               onDelete={async () => {
-                if (!confirm(`Are you sure you want to remove "${selectedSource.name}"?`)) {
+                if (!selectedSource || !confirm(`Are you sure you want to remove "${selectedSource.name}"?`)) {
                   return;
                 }
                 try {

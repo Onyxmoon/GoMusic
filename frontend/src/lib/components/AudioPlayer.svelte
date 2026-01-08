@@ -1,6 +1,5 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
-  import { GetTrackFilePath } from '../../../wailsjs/go/main/App.js';
   import { player } from '../stores/player.svelte';
 
   let audioElement: HTMLAudioElement;
@@ -33,7 +32,7 @@
   // Effect: Volume control
   $effect(() => {
     if (audioElement) {
-      audioElement.volume = player.isMuted ? 0 : player.volume;
+      audioElement.volume = player.isMuted ? 0 : player.actualVolume;
     }
   });
 
@@ -55,10 +54,8 @@
     isLoading = true;
 
     try {
-      const filePath = await GetTrackFilePath(trackId);
-
-      // Use HTTP endpoint to stream the file (avoids file:// CORS issues)
-      const audioUrl = `/audio/stream?path=${encodeURIComponent(filePath)}`;
+      // Use ID-based URL to stream audio (backend looks up file path from cache)
+      const audioUrl = `/audio/stream?id=${encodeURIComponent(trackId)}`;
       audioElement.src = audioUrl;
 
       // Auto-play if isPlaying is true
@@ -124,9 +121,9 @@
         album: player.currentTrack.album || 'Unknown Album',
       };
 
-      // Add artwork if available
-      if (player.currentTrack.artworkPath) {
-        const artworkUrl = `/artwork/stream?file=${encodeURIComponent(player.currentTrack.artworkPath)}`;
+      // Add artwork if available (using track ID instead of file path)
+      if (player.currentTrack.id) {
+        const artworkUrl = `/artwork/stream?id=${encodeURIComponent(player.currentTrack.id)}`;
         metadata.artwork = [
           { src: artworkUrl, sizes: '512x512', type: 'image/jpeg' },
         ];
@@ -155,7 +152,7 @@
   onMount(() => {
     // Initialize audio element properties
     if (audioElement) {
-      audioElement.volume = player.volume;
+      audioElement.volume = player.actualVolume;
       audioElement.preload = 'metadata';
     }
 

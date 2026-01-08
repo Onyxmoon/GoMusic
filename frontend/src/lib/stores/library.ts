@@ -1,11 +1,11 @@
 import { writable, derived } from 'svelte/store';
-import type { TrackDTO, ScanProgressDTO } from '../types/track';
+import type { dto } from '../../../wailsjs/go/models';
 
 // Library state
-export const tracks = writable<TrackDTO[]>([]);
+export const tracks = writable<dto.TrackDTO[]>([]);
 export const isLoading = writable<boolean>(false);
 export const error = writable<string | null>(null);
-export const scanProgress = writable<ScanProgressDTO | null>(null);
+export const scanProgress = writable<dto.ScanProgressDTO | null>(null);
 
 // Search state
 export const searchQuery = writable<string>('');
@@ -27,7 +27,7 @@ export const filteredTracks = derived(
 
 // Group tracks by album
 export const tracksByAlbum = derived(tracks, ($tracks) => {
-  const grouped = new Map<string, TrackDTO[]>();
+  const grouped = new Map<string, dto.TrackDTO[]>();
 
   $tracks.forEach(track => {
     const albumKey = track.albumId || 'unknown';
@@ -42,7 +42,7 @@ export const tracksByAlbum = derived(tracks, ($tracks) => {
 
 // Group tracks by artist
 export const tracksByArtist = derived(tracks, ($tracks) => {
-  const grouped = new Map<string, TrackDTO[]>();
+  const grouped = new Map<string, dto.TrackDTO[]>();
 
   $tracks.forEach(track => {
     const artistKey = track.artistId || 'unknown';

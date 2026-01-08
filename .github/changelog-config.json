@@ -1,0 +1,62 @@
+{
+  "categories": [
+    {
+      "title": "## Features",
+      "labels": [],
+      "rules": [
+        {
+          "pattern": "^feat(\\(.+\\))?:",
+          "on_property": "subject"
+        }
+      ]
+    },
+    {
+      "title": "## Bug Fixes",
+      "labels": [],
+      "rules": [
+        {
+          "pattern": "^fix(\\(.+\\))?:",
+          "on_property": "subject"
+        }
+      ]
+    },
+    {
+      "title": "## Maintenance",
+      "labels": [],
+      "rules": [
+        {
+          "pattern": "^(chore|refactor|perf)(\\(.+\\))?:",
+          "on_property": "subject"
+        }
+      ]
+    },
+    {
+      "title": "## Documentation",
+      "labels": [],
+      "rules": [
+        {
+          "pattern": "^docs(\\(.+\\))?:",
+          "on_property": "subject"
+        }
+      ]
+    },
+    {
+      "title": "## Build & CI",
+      "labels": [],
+      "rules": [
+        {
+          "pattern": "^(build|ci)(\\(.+\\))?:",
+          "on_property": "subject"
+        }
+      ]
+    }
+  ],
+  "ignore_labels": [
+    "ignore"
+  ],
+  "template": "#{{CHANGELOG}}\n\n**Full Changelog**: https://github.com/#{{OWNER}}/#{{REPO}}/compare/#{{FROM_TAG}}...#{{TO_TAG}}",
+  "pr_template": "- #{{TITLE}} ([##{{NUMBER}}](#{{URL}})) by @#{{AUTHOR}}",
+  "commit_template": "- #{{TITLE}} ([#{{MERGE_SHA}}](https://github.com/#{{OWNER}}/#{{REPO}}/commit/#{{MERGE_SHA}})) by @#{{AUTHOR}}",
+  "empty_template": "- No changes",
+  "label_extractor": []
+}

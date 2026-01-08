@@ -21,5 +21,5 @@ type TrackDTO struct {
 	Format      string  `json:"format,omitempty"`
 	BitRate     int     `json:"bitRate,omitempty"`
 	SampleRate  int     `json:"sampleRate,omitempty"`
-	ArtworkPath string  `json:"artworkPath,omitempty"`
+	HasArtwork  bool    `json:"hasArtwork"`
 }

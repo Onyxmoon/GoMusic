@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"log"
 	"sync"
 
 	"GoMusic/internal/domain/model"
@@ -69,10 +70,10 @@ func (s *LibraryService) GetAllTracks(ctx context.Context, opts *repository.Quer
 
 	var allTracks []*model.Track
 
-	for _, repo := range s.trackRepos {
+	for sourceID, repo := range s.trackRepos {
 		tracks, err := repo.FindAll(ctx, opts)
 		if err != nil {
-			// Log error but continue with other sources
+			log.Printf("ERROR: Failed to fetch tracks from source %s: %v", sourceID, err)
 			continue
 		}
 		allTracks = append(allTracks, tracks...)
@@ -103,10 +104,10 @@ func (s *LibraryService) SearchTracks(ctx context.Context, query string, opts *r
 
 	var allResults []*model.Track
 
-	for _, repo := range s.trackRepos {
+	for sourceID, repo := range s.trackRepos {
 		results, err := repo.Search(ctx, query, opts)
 		if err != nil {
-			// Log error but continue with other sources
+			log.Printf("ERROR: Failed to search tracks in source %s: %v", sourceID, err)
 			continue
 		}
 		allResults = append(allResults, results...)
@@ -122,9 +123,10 @@ func (s *LibraryService) GetTracksByAlbum(ctx context.Context, albumID string) (
 
 	var allTracks []*model.Track
 
-	for _, repo := range s.trackRepos {
+	for sourceID, repo := range s.trackRepos {
 		tracks, err := repo.FindByAlbum(ctx, albumID)
 		if err != nil {
+			log.Printf("ERROR: Failed to fetch album tracks from source %s: %v", sourceID, err)
 			continue
 		}
 		allTracks = append(allTracks, tracks...)
@@ -144,9 +146,10 @@ func (s *LibraryService) GetTracksByArtist(ctx context.Context, artistID string)
 
 	var allTracks []*model.Track
 
-	for _, repo := range s.trackRepos {
+	for sourceID, repo := range s.trackRepos {
 		tracks, err := repo.FindByArtist(ctx, artistID)
 		if err != nil {
+			log.Printf("ERROR: Failed to fetch artist tracks from source %s: %v", sourceID, err)
 			continue
 		}
 		allTracks = append(allTracks, tracks...)

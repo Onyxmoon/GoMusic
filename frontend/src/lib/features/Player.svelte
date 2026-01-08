@@ -1,12 +1,7 @@
 <script lang="ts">
   import { player } from '../stores/player.svelte';
   import { SkipBack, Play, Pause, SkipForward, Volume2 } from 'lucide-svelte';
-
-  function formatTime(seconds: number): string {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  }
+  import { formatTime } from '../utils/timeFormat';
 
   function handleProgressClick(e: MouseEvent) {
     const target = e.currentTarget as HTMLElement;
@@ -34,8 +29,8 @@
   {#if player.currentTrack}
     <div class="player-track-info">
       <div class="track-artwork">
-        {#if player.currentTrack.artworkPath}
-          <img src={`/artwork/stream?file=${encodeURIComponent(player.currentTrack.artworkPath)}`} alt={player.currentTrack.title} />
+        {#if player.currentTrack.hasArtwork}
+          <img src={`/artwork/stream?id=${encodeURIComponent(player.currentTrack.id)}`} alt={player.currentTrack.title} />
         {:else}
           <div class="artwork-placeholder"></div>
         {/if}
@@ -263,15 +258,6 @@
     border-radius: 50%;
     background: #5b8cff;
     cursor: pointer;
-  }
-
-  .volume-slider::-moz-range-thumb {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: #5b8cff;
-    cursor: pointer;
-    border: none;
   }
 
   .player-empty {

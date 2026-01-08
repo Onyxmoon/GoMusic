@@ -39,7 +39,7 @@ func (m *TrackMapper) ToDTO(track *model.Track) *dto.TrackDTO {
 		Format:      track.Format,
 		BitRate:     track.BitRate,
 		SampleRate:  track.SampleRate,
-		ArtworkPath: track.ArtworkPath,
+		HasArtwork:  track.ArtworkPath != "",
 	}
 }
 

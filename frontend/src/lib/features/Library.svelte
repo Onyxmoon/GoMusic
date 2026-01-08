@@ -3,6 +3,7 @@
   import { GetAllTracks, ScanLibrary, GetSources } from '../../../wailsjs/go/main/App.js';
   import { tracks, isLoading, error, searchQuery, filteredTracks, scanProgress } from '../stores/library';
   import { EventsOn } from '../../../wailsjs/runtime/runtime.js';
+  import type { ScanErrorEvent } from '../types/events';
   import Input from '../components/Input.svelte';
   import Button from '../components/Button.svelte';
   import TrackList from '../components/TrackList.svelte';
@@ -20,7 +21,7 @@
     try {
       const sources = await GetSources();
       if (sources && sources.length > 0) {
-        firstSourceId = sources[0].ID;
+        firstSourceId = sources[0].id;
       }
     } catch (err) {
       console.error('Failed to load sources:', err);
@@ -69,7 +70,7 @@
       await loadTracks();
     });
 
-    EventsOn('scan:error', (data: any) => {
+    EventsOn('scan:error', (data: ScanErrorEvent) => {
       console.error('Scan error:', data);
       error.set(data.error || 'Scan failed');
       isScanning = false;
