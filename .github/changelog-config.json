@@ -5,8 +5,7 @@
       "labels": [],
       "rules": [
         {
-          "pattern": "^feat(\\(.+\\))?:",
-          "on_property": "subject"
+          "pattern": "^feat(\\(.+\\))?:"
         }
       ]
     },
@@ -15,8 +14,7 @@
       "labels": [],
       "rules": [
         {
-          "pattern": "^fix(\\(.+\\))?:",
-          "on_property": "subject"
+          "pattern": "^fix(\\(.+\\))?:"
         }
       ]
     },
@@ -25,8 +23,7 @@
       "labels": [],
       "rules": [
         {
-          "pattern": "^(chore|refactor|perf)(\\(.+\\))?:",
-          "on_property": "subject"
+          "pattern": "^(chore|refactor|perf)(\\(.+\\))?:"
         }
       ]
     },
@@ -35,8 +32,7 @@
       "labels": [],
       "rules": [
         {
-          "pattern": "^docs(\\(.+\\))?:",
-          "on_property": "subject"
+          "pattern": "^docs(\\(.+\\))?:"
         }
       ]
     },
@@ -45,8 +41,7 @@
       "labels": [],
       "rules": [
         {
-          "pattern": "^(build|ci)(\\(.+\\))?:",
-          "on_property": "subject"
+          "pattern": "^(build|ci)(\\(.+\\))?:"
         }
       ]
     }
