@@ -1,0 +1,70 @@
+name: "GoMusic: Build"
+
+on:
+  push:
+    tags:
+      - '*.*.*'       # Matches 0.1.0, 1.2.3, etc.
+      - '*.*.*-*'     # Matches 0.1.0-alpha, 0.1.0-beta.1, etc.
+  workflow_dispatch:  # Allows manual trigger for testing
+
+permissions:
+  contents: write
+
+jobs:
+  release-notes:
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build Changelog
+        id: build_changelog
+        uses: mikepenz/release-changelog-builder-action@v5
+        with:
+          configuration: ".github/changelog-config.json"
+          toTag: ${{ github.ref_name }}
+          mode: "HYBRID"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: "GoMusic ${{ github.ref_name }}"
+          body: ${{ steps.build_changelog.outputs.changelog }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build:
+    needs: release-notes
+    if: always() && !failure() && !cancelled()
+    strategy:
+      fail-fast: false
+      matrix:
+        build:
+          # Linux x64
+          - {name: GoMusic.x64, platform: linux/amd64, os: ubuntu-latest}
+          # Windows x64
+          - {name: GoMusic.exe, platform: windows/amd64, os: windows-latest}
+          # macOS universal binary (Intel + Apple Silicon)
+          - {name: GoMusic, platform: darwin/universal, os: macos-latest}
+
+    runs-on: ${{ matrix.build.os }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Build Wails app
+        uses: dAppServer/wails-build-action@main
+        with:
+          build-name: ${{ matrix.build.name }}
+          build-platform: ${{ matrix.build.platform }}
+          package: true
+          sign: false
